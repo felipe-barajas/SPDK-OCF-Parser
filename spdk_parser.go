@@ -20,6 +20,7 @@ var (
   sleepTime int
   isLogEnabled bool
   logPath string
+  cache string
 )
 
 type Bdev struct {
@@ -224,7 +225,7 @@ func recordMetrics() {
       }
 
       var parsed_ocf_data OCFStat
-      ocf_json_data,ocf_err := exec.Command("/root/spdk/scripts/rpc.py","get_ocf_stats", "Cache1").Output()
+      ocf_json_data,ocf_err := exec.Command("/root/spdk/scripts/rpc.py","get_ocf_stats", cache).Output()
 
       xprint("SPDK OCF DATA:\n" + fmt.Sprint(string(ocf_json_data)))
       if (ocf_err) != nil {
@@ -255,7 +256,6 @@ func recordMetrics() {
       OCFStat_count.With(prometheus.Labels{"category":"requests", "subcategory":"rd_partial_misses"}).Set(parsed_ocf_data.Requests.Rd_partial_misses.Count)
       OCFStat_count.With(prometheus.Labels{"category":"requests", "subcategory":"rd_full_misses"}).Set(parsed_ocf_data.Requests.Rd_full_misses.Count)
       OCFStat_count.With(prometheus.Labels{"category":"requests", "subcategory":"rd_total"}).Set(parsed_ocf_data.Requests.Rd_total.Count)
-      OCFStat_count.With(prometheus.Labels{"category":"requests", "subcategory":"rd_hits"}).Set(parsed_ocf_data.Requests.Rd_hits.Count)
       OCFStat_count.With(prometheus.Labels{"category":"requests", "subcategory":"wr_hits"}).Set(parsed_ocf_data.Requests.Wr_hits.Count)
       OCFStat_count.With(prometheus.Labels{"category":"requests", "subcategory":"wr_partial_misses"}).Set(parsed_ocf_data.Requests.Wr_partial_misses.Count)
       OCFStat_count.With(prometheus.Labels{"category":"requests", "subcategory":"wr_full_misses"}).Set(parsed_ocf_data.Requests.Wr_full_misses.Count)
@@ -293,7 +293,6 @@ func recordMetrics() {
       if s,err := strconv.ParseFloat(parsed_ocf_data.Requests.Rd_partial_misses.Percentage  ,64); err == nil { OCFStat_percentage.With(prometheus.Labels{"category":"requests", "subcategory":"rd_partial_misses"}).Set(s)}
       if s,err := strconv.ParseFloat(parsed_ocf_data.Requests.Rd_full_misses.Percentage     ,64); err == nil { OCFStat_percentage.With(prometheus.Labels{"category":"requests", "subcategory":"rd_full_misses"}).Set(s)}
       if s,err := strconv.ParseFloat(parsed_ocf_data.Requests.Rd_total.Percentage           ,64); err == nil { OCFStat_percentage.With(prometheus.Labels{"category":"requests", "subcategory":"rd_total"}).Set(s)}
-      if s,err := strconv.ParseFloat(parsed_ocf_data.Requests.Rd_hits.Percentage            ,64); err == nil { OCFStat_percentage.With(prometheus.Labels{"category":"requests", "subcategory":"rd_hits"}).Set(s)}
       if s,err := strconv.ParseFloat(parsed_ocf_data.Requests.Wr_hits.Percentage            ,64); err == nil { OCFStat_percentage.With(prometheus.Labels{"category":"requests", "subcategory":"wr_hits"}).Set(s)}
       if s,err := strconv.ParseFloat(parsed_ocf_data.Requests.Wr_partial_misses.Percentage  ,64); err == nil { OCFStat_percentage.With(prometheus.Labels{"category":"requests", "subcategory":"wr_partial_misses"}).Set(s)}
       if s,err := strconv.ParseFloat(parsed_ocf_data.Requests.Wr_full_misses.Percentage     ,64); err == nil { OCFStat_percentage.With(prometheus.Labels{"category":"requests", "subcategory":"wr_full_misses"}).Set(s)}
@@ -391,6 +390,7 @@ func main() {
   sleepPtr := flag.Int("sleep", 1, "The number of seconds to sleep in between metrics")
   logPtr := flag.Bool("log", false, "Turns on logging information")
   logPathPtr := flag.String("logfile", "/tmp/spdk_parser.out", "log file location")
+  cacheDevPtr := flag.String("cache", "Cache1", "Cache Bdev Name")
 
   flag.Parse()
 
@@ -398,6 +398,7 @@ func main() {
   sleepTime = *sleepPtr
   isLogEnabled = *logPtr
   logPath = *logPathPtr
+  cache = *cacheDevPtr
 
   port := ":" + strconv.Itoa(portNumber)
 
@@ -406,6 +407,7 @@ func main() {
   xprint("Sleep Time   :" + strconv.Itoa(sleepTime))
   xprint("isLogEnabled :" + strconv.FormatBool(isLogEnabled))
   xprint("Log Path     :" + logPath)
+  xprint("Cache Device :" + cache)
   xprint("Other Args   :" + fmt.Sprintln(flag.Args()))
 
   recordMetrics()
