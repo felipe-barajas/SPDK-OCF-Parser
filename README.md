@@ -37,14 +37,14 @@ To use follow these general instructions:
 6. Clone SPDK Parser
 > ```mkdir -p /root/go/src```  
 > ```cd /root/go/src```  
-> ```git clone https://github.com/felipe-barajas/SPDK-OCF-Parser/spdk_parser.git```
+> ```git clone https://github.com/felipe-barajas/SPDK-OCF-Parser ```
 
 7. Compile SPDK Parser  
 > ``` cd SPDK-OCF-Parser ```  
 > ``` go build spdk_parser.go ```  
   
-8. Run SPDK Parser using the port defined above (2113), logging data to /tmp/spdk_parser.out and sleeping 1 sec between metric recordings
-> ``` ./spdk_parser -port=2113 -log -logfile="/tmp/spdk_parser.out" --sleep=1 ```  
+8. Run SPDK Parser using the port defined above (2113), getting OCF stats for cache named Cache1, logging data to /tmp/spdk_parser.out and sleeping 1 sec between metric recordings
+> ``` ./spdk_parser -port=2113 -cache=Cache1 -log -logfile="/tmp/spdk_parser.out" --sleep=1 ```  
 
 9. On the Grafana server setup the newly created Prometheus source. The default port for the Prometheus server is 9090. For example:  
 ![alt text](spdk_parser_datasource_image.jpg "Example")
