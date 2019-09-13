@@ -1,3 +1,18 @@
+//##############################################################################
+//# spdk_parser.go
+//#
+//#
+//# Description:  This is a plugin for Prometheus to parse SPDK Bdevs and
+//#               OCF data in order to visualize metrics in Grafana
+//#
+//# Usage:     spdk_parser [-port=PORT_NUMBER] | [-cache=OCF_BDEV_NAME] |
+//#                        [-log] | [-logfile=FULL_PATH_TO_LOG]  |
+//#                        [-sleep=SECS_TO_SLEEP_BETWEEN_ITERATIONS] |
+//#                        [-rpc=PATH_TO_SPDK_RPC_CMD]
+//#
+//#  Example:  spdk_parser -port=2113 -cache=Cache1 -log -logfile="/tmp/spdk_parser.out" --sleep=1
+//##############################################################################
+
 package main
 
 import (
@@ -15,14 +30,17 @@ import (
     "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// Global variables
 var (
   portNumber int
   sleepTime int
   isLogEnabled bool
   logPath string
   cache string
+  rpcCmd string
 )
 
+// Definitions of strucs that will be used to parse data
 type Bdev struct {
   Name string
   Bytes_read float64
@@ -102,7 +120,7 @@ type OCFStat struct {
   Errors OCF_errors
 }
 
-
+// Definitions of metrics
 var (
 	IOStat_bytes_read = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -189,19 +207,22 @@ var (
   )
 )
 
-func check(e error) {
-  if e != nil {
-    log.Fatal(e)
-    panic(e)
-  }
-}
-
+//##############################################################################
+//# Function: recordMetrics
+//#
+//# Input:   None
+//# Output:  None
+//#
+//# Description:  This function will record all the metrics and expose them to
+//#               Prometheus.  It will execute RPC commands get_bdevs_iostat and
+//#               get_ocf_stats
+//##############################################################################
 func recordMetrics() {
   go func() {
     for {
       var parsed_iostat_data IOStat
 
-      io_stat_json_data,iostat_err := exec.Command("/root/spdk/scripts/rpc.py","get_bdevs_iostat").Output()
+      io_stat_json_data,iostat_err := exec.Command(rpcCmd,"get_bdevs_iostat").Output()
 
       xprint("SPDK IOSTAT DATA:\n" + fmt.Sprintln(parsed_iostat_data))
       if (iostat_err) != nil {
@@ -225,7 +246,7 @@ func recordMetrics() {
       }
 
       var parsed_ocf_data OCFStat
-      ocf_json_data,ocf_err := exec.Command("/root/spdk/scripts/rpc.py","get_ocf_stats", cache).Output()
+      ocf_json_data,ocf_err := exec.Command(rpcCmd,"get_ocf_stats", cache).Output()
 
       xprint("SPDK OCF DATA:\n" + fmt.Sprint(string(ocf_json_data)))
       if (ocf_err) != nil {
@@ -325,6 +346,14 @@ func recordMetrics() {
   }()
 }
 
+//##############################################################################
+//# Function: init()
+//#
+//# Input:   None
+//# Output:  None
+//#
+//# Description:  This function registers all the metrics in Prometheus
+//##############################################################################
 func init() {
   prometheus.MustRegister(IOStat_bytes_read)
   prometheus.MustRegister(IOStat_read_ops)
@@ -340,6 +369,15 @@ func init() {
   prometheus.MustRegister(OCFStat_percentage)
 }
 
+//##############################################################################
+//# Function: recordMetrics
+//#
+//# Input:   message - the string to write in a file line
+//# Output:  FILE - logFile - The file to store the message
+//#
+//# Description:  This function will write a line to the log file if logging is
+//#               enabled
+//##############################################################################
 func xprint( message string){
   // Max log file size in bytes
   var maxFileSize int64 = 104857600
@@ -349,6 +387,7 @@ func xprint( message string){
     return
   }
 
+ // rotate the log after Max has been reached
    fileStat, err := os.Stat(logPath)
    if err == nil  {
      if fileStat.Size() > maxFileSize {
@@ -360,11 +399,9 @@ func xprint( message string){
          didTrim = true
        }
      }
-   } else {
-     fmt.Println("Failed to list file")
-     fmt.Println(err)
    }
 
+  // get the time and append the message to this
     currentTime := time.Now()
     formattedMsg := fmt.Sprintln(message)
     line := "MSG : " + currentTime.Format("01/02/2006 3:4:5 PM") + " - " + formattedMsg
@@ -383,6 +420,11 @@ func xprint( message string){
   	fmt.Fprintf(f, "%s\n", line)
 }
 
+
+//##############################################################################
+//#  MAIN STARTS HERE
+//##############################################################################
+
 func main() {
 
   //argument functions, default values, help text
@@ -391,6 +433,7 @@ func main() {
   logPtr := flag.Bool("log", false, "Turns on logging information")
   logPathPtr := flag.String("logfile", "/tmp/spdk_parser.out", "log file location")
   cacheDevPtr := flag.String("cache", "Cache1", "Cache Bdev Name")
+  cmdPtr := flag.String("rpc", "/root/spdk/scripts/rpc.py", "The full path of the SPDK rpc.py script")
 
   flag.Parse()
 
@@ -399,6 +442,7 @@ func main() {
   isLogEnabled = *logPtr
   logPath = *logPathPtr
   cache = *cacheDevPtr
+  rpcCmd = *cmdPtr
 
   port := ":" + strconv.Itoa(portNumber)
 
@@ -408,7 +452,18 @@ func main() {
   xprint("isLogEnabled :" + strconv.FormatBool(isLogEnabled))
   xprint("Log Path     :" + logPath)
   xprint("Cache Device :" + cache)
+  xprint("SPDK RPC Path:" + rpcCmd)
   xprint("Other Args   :" + fmt.Sprintln(flag.Args()))
+
+  // Test that RPC is working fail if not
+  _,err := exec.Command(rpcCmd,"get_bdevs_iostat").Output()
+  if (err) != nil {
+    fmt.Println("ERROR: Unable to start because the command [" + rpcCmd + " get_bdevs_iostat] FAILED")
+    fmt.Println("ERROR: Please ensure you have installed SPDK and that this command succeeds")
+    fmt.Println("ERROR: The path to the RPC script can be changed with the -rpc=FULL_PATH argument")
+    fmt.Println(err)
+    os.Exit(1)
+  }
 
   recordMetrics()
 
