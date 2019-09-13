@@ -54,6 +54,7 @@ To use follow these general instructions:
 
 Alternatively, under the Metrics drop down menu, select the "spdk" section as shown below.
 ![alt text](spdk_parser_metrics_image.jpg "Example")
+  
 All the available metrics exposed by SPDK Parser will appear here. A sample dashboard is also provided in the sample_dashboard.json file. This file can be manaully edited and imported into Grafana as well.
 
 ### SPDK OCF Parser Queries Supported
