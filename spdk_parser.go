@@ -224,7 +224,7 @@ func recordMetrics() {
 
       io_stat_json_data,iostat_err := exec.Command(rpcCmd,"get_bdevs_iostat").Output()
 
-      xprint("SPDK IOSTAT DATA:\n" + fmt.Sprintln(parsed_iostat_data))
+      xprint("SPDK IOSTAT DATA:\n" + fmt.Sprint(string(io_stat_json_data)))
       if (iostat_err) != nil {
         continue
       }
@@ -370,7 +370,7 @@ func init() {
 }
 
 //##############################################################################
-//# Function: recordMetrics
+//# Function: xprint
 //#
 //# Input:   message - the string to write in a file line
 //# Output:  FILE - logFile - The file to store the message
