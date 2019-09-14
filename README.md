@@ -1,5 +1,5 @@
 # SPDK-OCF-Parser
-This tool parses SPDK Bdevs and OCF data into Prometheus allowing graphing via Grafana
+This tool parses SPDK Bdevs and OCF data into Prometheus allowing visualization of metrics via Grafana
 
 ## Example
 The following image is from a Grafana dashboard showing the SPDK Parser tool data being graphed via Prometheus
@@ -15,7 +15,7 @@ To use follow these general instructions:
 >```tar xvzf prometheus-2.10.0.linux-amd64.tar.gz```  
 >```cd prometheus-2.10.0.linux-amd64```  
 
-2. Determine what port to use for the SPDK Parser (default is 2113).  Edit the prometheus.yml file and add this port as a target ('localhost:2113' for example)
+2. Determine what port to use for the SPDK Parser (default is 2113).  Edit the *prometheus.yml* file and add this port as a target ('localhost:2113' for example)
 >```vi prometheus.yml```  
   
 >> static_configs:
@@ -24,7 +24,7 @@ To use follow these general instructions:
 3. Start Prometheus  
 >``` ./prometheus & ```  
 
-4. If you do not have Go environemt get it with:  
+4. If you do not have the Go environment get it with:  
 > ```https://golang.org/dl/```  
 > ```tar -C /usr/local -xzf go$VERSION.$OS-$ARCH.tar.gz```  
 > ```export PATH=$PATH:/usr/local/go/bin```  
@@ -49,13 +49,13 @@ To use follow these general instructions:
 9. On the Grafana server setup the newly created Prometheus source. The default port for the Prometheus server is 9090. For example:  
 ![alt text](spdk_parser_datasource_image.jpg "Example")
 
-10. On the Grafana server create dashboards using the SPDK Parser data. Create a dashboard and add a panel. The panel needs to point to the Prometheus data source created in step above.  The Query to use is one defined by SPDK Parser. See the next section for all the options.  For example, to see the instantaneous rate of the Reads from the OCF device called "Cache1" grouped by 5s, use a query as shown in the picture below  
+10. On the Grafana server create a dashboard and add a panel. The panel needs to point to the Prometheus data source created in the step above.  The metric query to use is one defined by SPDK Parser. See the next section for all the options.  For example, to see the instantaneous rate of the Reads from the OCF device called "Cache1" grouped by 5s, use a metric query as shown in the picture below  
 ![alt text](spdk_parser_dashboard_image.jpg "Example")
 
 Alternatively, under the Metrics drop down menu, select the "spdk" section as shown below.
 ![alt text](spdk_parser_metrics_image.jpg "Example")
   
-All the available metrics exposed by SPDK Parser will appear here. A sample dashboard is also provided in the sample_dashboard.json file. This file can be manaully edited and imported into Grafana as well.
+All the available metrics exposed by SPDK Parser will appear here. A sample dashboard is also provided in the *sample_dashboard.json* file. This file can be manaully edited and imported into Grafana as well.
 
 ### SPDK OCF Parser Queries Supported
 The following metrics apply to SPDK Bdevs and can be filtered using bdev_name
