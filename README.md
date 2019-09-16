@@ -1,5 +1,9 @@
 # SPDK-OCF-Parser
-This tool parses SPDK Bdevs and OCF data into Prometheus allowing visualization of metrics via Grafana
+This tool parses SPDK Bdevs and OCF data using Prometheus allowing visualization of SPDK and OCF metrics via Grafana.
+
+SPDK is a set of tools and libraries for accelerating storage devices in user-space. More information on SPDK is available here: https://spdk.io/
+
+OCF for SPDK is a caching module for SPDK. More information is available here: https://open-cas.github.io/getting_started_spdk.html
 
 ## Example
 The following image is from a Grafana dashboard showing the SPDK Parser tool data being graphed via Prometheus
