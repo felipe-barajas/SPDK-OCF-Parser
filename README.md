@@ -5,6 +5,22 @@ This tool parses SPDK Bdevs and OCF data into Prometheus allowing visualization 
 The following image is from a Grafana dashboard showing the SPDK Parser tool data being graphed via Prometheus
 ![alt text](spdk_parser_sample_image.jpg "Example")
 
+## Usage
+spdk_parser [-port=PORT_NUMBER] | [-cache=OCF_BDEV_NAME] |  
+            [-log] | [-logfile=FULL_PATH_TO_LOG]  |  
+            [-sleep=SECS_TO_SLEEP_BETWEEN_ITERATIONS] |  
+            [-rpc=PATH_TO_SPDK_RPC_CMD]  
+
+
+| Option   |        Argument       |  Description |
+|----------|:---------------------:|--------------|
+| -port    | PORT_NUMBER           | The TCP port number spdk_parser will bind to in order to publish metrics  |
+| -cache   |    OCF_BDEV_NAME      |   The name of the OCF block device to get statistics from |
+| -log     |                       | Enable logging     |
+| -logfile | FULL_PATH_TO_LOG      |    The path to the log file where output will be sent to when log is enabled  |
+| -sleep   | SECS_TO_SLEEP         |    The number of seconds to sleep between iterations of metric gathering  |
+| -rpc     | PATH_TO_SPDK_RPC_CMD  |    The full path of the SPDK rpc.py script which will be called to get SPDK statistics |
+
 ## Instructions
 This tool is written in Go and has been tested with Red Hat Linux 7.5  
 
